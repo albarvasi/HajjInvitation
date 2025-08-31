@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hajj Homecoming</title>
+  <meta name="description" content="Join us to celebrate Hajj — you are warmly invited." />
+  <meta property="og:title" content="Hajj Homecoming" />
+  <meta property="og:description" content="Join us to celebrate Hajj — you are warmly invited." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="invite.jpg" />
+  <meta name="theme-color" content="#0a3d62" />
+  <style>
+    :root{
+      --bg:#f7fafc;
+      --fg:#0f172a;
+      --muted:#64748b;
+      --brand:#0a3d62; /* deep blue */
+      --accent:#16a34a; /* green */
+      --card:#ffffff;
+      --ring: 0 10px 30px rgba(2,6,23,.10);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      color:var(--fg); background:var(--bg);
+      display:grid; place-items:center; padding:24px;
+    }
+
+    /* Soft Kaaba-inspired pattern */
+    body::before{
+      content:""; position:fixed; inset:0; pointer-events:none;
+      background:
+        radial-gradient(1200px 300px at 50% -200px, rgba(22,163,74,.08), transparent),
+        radial-gradient(800px 250px at 100% 0%, rgba(10,61,98,.10), transparent);
+      z-index:-2;
+    }
+
+    .wrap{ width:min(900px, 100%); }
+
+    .card{
+      background:var(--card); border-radius:28px; box-shadow:var(--ring);
+      overflow:hidden; position:relative; isolation:isolate;
+    }
+
+    header{
+      display:flex; align-items:center; gap:12px; padding:14px 16px; background:#0a3d62; color:#fff;
+    }
+    .crescent{ width:28px; height:28px; display:inline-grid; place-items:center; border-radius:50%; background:rgba(255,255,255,.15)}
+    .hdr-title{ font-weight:700; letter-spacing:.3px }
+
+    .hero{ position:relative; }
+    .invitation-img{
+      width:100%; display:block; max-height:80vh; object-fit:contain; background:#eef2f7;
+    }
+    .skeleton{animation: shimmer 1.2s linear infinite;background:linear-gradient(100deg, #e5e7eb 20%, #f3f4f6 40%, #e5e7eb 60%);background-size:200% 100%}
+    @keyframes shimmer{to{background-position:-200% 0}}
+
+    .toolbar{
+      display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; padding:14px 16px; border-top:1px solid #e5e7eb;
+    }
+    .left, .right{ display:flex; gap:10px; align-items:center }
+
+    button, .btn{
+      appearance:none; border:0; border-radius:999px; padding:10px 14px; font-weight:600; cursor:pointer; display:inline-flex; gap:8px; align-items:center; text-decoration:none;
+    }
+    .btn-primary{ background:var(--brand); color:#fff }
+    .btn-ghost{ background:#f1f5f9; color:#0f172a }
+    .btn-outline{ border:1px solid #cbd5e1; background:#fff; color:#0f172a }
+
+    .a11y{
+      display:flex; gap:8px; align-items:center; font-size:12px; color:var(--muted)
+    }
+
+    footer{ text-align:center; color:var(--muted); font-size:12px; margin-top:10px }
+
+    .pill{ font-size:12px; padding:6px 10px; border-radius:999px; background:#ecfdf5; color:#166534; border:1px solid #bbf7d0 }
+
+    .notice{ font-size:13px; color:var(--muted) }
+
+    .fade-in{ opacity:0; transform: translateY(4px); transition:opacity .5s ease, transform .5s ease }
+    .fade-in.ready{ opacity:1; transform:none }
+
+    @media (prefers-reduced-motion: reduce){
+      .skeleton{ animation:none }
+      .fade-in{ transition:none }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card fade-in" id="card">
+      <header>
+        <div class="crescent" aria-hidden="true">🌙</div>
+        <div>
+          <div class="hdr-title">Hajj Homecoming</div>
+          <div class="notice">To celebrate Hajj — you are warmly invited</div>
+        </div>
+      </header>
+
+      <!-- Invitation image -->
+      <!-- Replace invite.jpg with your actual file name. Keep it in the same folder. -->
+      <div class="hero">
+        <img id="invitation" class="invitation-img skeleton" src="invite.jpg" alt="Invitation card for the Hadiya gathering" />
+      </div>
+
+      <div class="toolbar">
+        <div class="left">
+          <button id="audioBtn" class="btn-primary" aria-pressed="false" aria-label="Play Labbaik nasheed">
+            <span id="audioIcon">▶️</span>
+            <span id="audioText">Play Labbaik</span>
+          </button>
+          <span class="notice" id="autoplayNote" hidden>
+            Tip: Tap play — browsers block auto-play with sound.
+          </span>
+        </div>
+
+        <div class="right">
+          <a id="rsvpBtn" class="btn-ghost" href="#rsvp" aria-label="RSVP">RSVP</a>
+          <a id="mapsBtn" class="btn-outline" href="#map" aria-label="Open Map">Open Map</a>
+          <a id="shareBtn" class="btn-outline" href="#share" aria-label="Share">Share</a>
+        </div>
+      </div>
+    </div>
+
+    <details style="margin:10px 0; font-size:12px; color:#475569;">
+      <summary>Having trouble playing audio?</summary>
+      <div style="margin-top:8px">
+        <p class="notice">Make sure your device isn’t on silent, then tap Play. If needed, use the native control below:</p>
+        <audio id="nativeCtl" controls style="width:100%"></audio>
+      </div>
+    </details>
+
+    <footer>
+      <span class="pill">Audio: Labbaik (nasheed)</span>
+      <div class="notice">This site respects your settings: reduced motion & prefers-color-scheme.</div>
+    </footer>
+  </div>
+
+  <!-- Background audio -->
+  <!-- Keep labbaik.mp3 in the SAME folder as this HTML file -->
+  <audio id="bgm" src="./labbaik.mp3" preload="auto" loop playsinline crossorigin="anonymous"></audio>
+
+  <script>
+    // --- URL params helper ---
+    const qs = new URLSearchParams(location.search);
+
+    // Optional links
+    const rsvpURL = qs.get('rsvp');
+    const mapURL = qs.get('map');
+    const shareText = qs.get('shareText') || 'Join us to celebrate Hajj — you are warmly invited!';
+    if (rsvpURL) document.getElementById('rsvpBtn').href = rsvpURL;
+    if (mapURL) document.getElementById('mapsBtn').href = mapURL;
+
+    // Share
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', async (e)=>{
+      e.preventDefault();
+      const data = { title: document.title, text: shareText, url: location.href };
+      if (navigator.share){
+        try{ await navigator.share(data); }catch(e){}
+      } else {
+        const wa = 'https://wa.me/?text=' + encodeURIComponent(shareText + '\n' + location.href);
+        location.href = wa;
+      }
+    });
+
+    // Image shimmer
+    const img = document.getElementById('invitation');
+    img.addEventListener('load', ()=> img.classList.remove('skeleton'));
+    img.addEventListener('error', ()=>{
+      img.alt = 'Invitation image not found. Place invite.jpg beside this HTML file.';
+      img.classList.remove('skeleton');
+    });
+
+    // Reveal animation
+    window.addEventListener('load', ()=> document.getElementById('card').classList.add('ready'));
+
+    // Audio controls with respectful autoplay handling + diagnostics
+    const audio = document.getElementById('bgm');
+    const nativeCtl = document.getElementById('nativeCtl');
+    nativeCtl.src = audio.currentSrc || audio.src;
+
+    const btn = document.getElementById('audioBtn');
+    const icon = document.getElementById('audioIcon');
+    const text = document.getElementById('audioText');
+    const autoplayNote = document.getElementById('autoplayNote');
+
+    function toast(msg){
+      let t=document.getElementById('toast');
+      if(!t){
+        t=document.createElement('div');
+        t.id='toast';
+        Object.assign(t.style,{
+          position:'fixed',bottom:'16px',left:'50%',transform:'translateX(-50%)',
+          background:'#0f172a',color:'#fff',padding:'10px 14px',borderRadius:'12px',
+          boxShadow:'0 10px 30px rgba(0,0,0,.25)',fontSize:'12px',zIndex:9999,transition:'opacity .3s'
+        });
+        document.body.appendChild(t);
+      }
+      t.textContent=msg; t.style.opacity='1';
+      setTimeout(()=>{t.style.opacity='0'}, 4500);
+    }
+
+    function updateUI(){
+      const playing = !audio.paused;
+      icon.textContent = playing ? '⏸️' : '▶️';
+      text.textContent = playing ? 'Pause Labbaik' : 'Play Labbaik';
+      btn.setAttribute('aria-pressed', playing ? 'true' : 'false');
+    }
+
+    audio.addEventListener('error', ()=>{
+      toast('Audio not found or blocked. Ensure "labbaik.mp3" is beside this HTML and the site is served over HTTPS.');
+    });
+    audio.addEventListener('stalled', ()=> toast('Network stalled while loading audio.'));
+    audio.addEventListener('canplaythrough', ()=>{/* ready */});
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    async function attemptAutoplay(){
+      btn.disabled = true;
+      autoplayNote.hidden = true;
+      if (prefersReducedMotion){ btn.disabled=false; autoplayNote.hidden=false; return; }
+      try{
+        audio.muted = true;
+        await audio.play();   // warm-up
+        audio.pause();
+        audio.currentTime = 0;
+        audio.muted = false;
+      }catch(err){
+        // Autoplay blocked — normal on most browsers
+      }finally{
+        btn.disabled = false;
+        autoplayNote.hidden = false;
+        updateUI();
+      }
+    }
+    attemptAutoplay();
+
+    btn.addEventListener('click', async ()=>{
+      try{
+        if (audio.paused){ await audio.play(); }
+        else { audio.pause(); }
+      }catch(err){
+        toast('Could not start audio: ' + (err?.message || 'Interaction required or format unsupported.'));
+      }
+      updateUI();
+    });
+
+    // Pause when tab hidden; resume only if user had it playing
+    let wasPlaying = false;
+    document.addEventListener('visibilitychange', ()=>{
+      if (document.hidden){ wasPlaying = !audio.paused; audio.pause(); }
+      else if (wasPlaying){ audio.play().catch(()=>{}); }
+      updateUI();
+    });
+
+    // Keyboard access
+    btn.addEventListener('keydown', (e)=>{
+      if (e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); btn.click(); }
+    });
+
+    // Optional: Add-to-Calendar via query string
+    const evtTitle = qs.get('eventTitle');
+    const evtStart = qs.get('eventStart');
+    const evtEnd = qs.get('eventEnd');
+    const evtLoc = qs.get('eventLocation');
+    if (evtTitle && evtStart && evtEnd){
+      const calBtn = document.createElement('a');
+      calBtn.className = 'btn-outline';
+      calBtn.textContent = 'Add to Calendar';
+      calBtn.href = '#';
+      calBtn.addEventListener('click', (e)=>{
+        e.preventDefault();
+        const pad = (n)=> String(n).padStart(2,'0');
+        const dt = (s)=>{ const d=new Date(s); return d.getUTCFullYear()+pad(d.getUTCMonth()+1)+pad(d.getUTCDate())+'T'+pad(d.getUTCHours())+pad(d.getUTCMinutes())+pad(d.getUTCSeconds())+'Z'; };
+        const ics = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Hadiya Invite//EN
+BEGIN:VEVENT
+UID:${crypto.randomUUID()}
+DTSTAMP:${dt(new Date().toISOString())}
+DTSTART:${dt(evtStart)}
+DTEND:${dt(evtEnd)}
+SUMMARY:${evtTitle}
+LOCATION:${(evtLoc||'').replace(/,/g,'\\,')}
+END:VEVENT
+END:VCALENDAR`;
+        const blob = new Blob([ics], {type:'text/calendar'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'hadiya-invite.ics'; a.click();
+        URL.revokeObjectURL(url);
+      });
+      document.querySelector('.right').prepend(calBtn);
+    }
+
+    // Dark mode support
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){
+      document.documentElement.style.setProperty('--bg', '#0b1220');
+      document.documentElement.style.setProperty('--fg', '#e5e7eb');
+      document.documentElement.style.setProperty('--card', '#0f172a');
+      document.documentElement.style.setProperty('--muted', '#94a3b8');
+      document.documentElement.style.setProperty('--ring', '0 10px 30px rgba(0,0,0,.40)');
+      document.querySelector('header').style.background = '#062942';
+    }
+  </script>
+
+  <!--
+  ──────────────────────────────────────────────────────────────────────────────
+   HOW TO USE
+   1) Put this HTML, invite.jpg, and labbaik.mp3 in the SAME folder / GitHub Pages root.
+   2) Serve over HTTPS. Don’t hotlink audio from Google Drive (CORS/content-type issues).
+   3) Tap Play on first load (autoplay with sound is blocked by most browsers).
+   4) iPhone: make sure the hardware silent switch is OFF.
+  ──────────────────────────────────────────────────────────────────────────────
+  -->
+</body>
+</html>
