@@ -86,7 +86,6 @@
       .skeleton{ animation:none }
       .fade-in{ transition:none }
     }
-
   </style>
 </head>
 <body>
@@ -113,7 +112,7 @@
             <span id="audioText">Play Labbaik</span>
           </button>
           <span class="notice" id="autoplayNote" hidden>
-            Tip: Tap play — browsers block auto‑play with sound.
+            Tip: Tap play — browsers block auto-play with sound.
           </span>
         </div>
 
@@ -125,28 +124,36 @@
       </div>
     </div>
 
+    <details style="margin:10px 0; font-size:12px; color:#475569;">
+      <summary>Having trouble playing audio?</summary>
+      <div style="margin-top:8px">
+        <p class="notice">Make sure your device isn’t on silent, then tap Play. If needed, use the native control below:</p>
+        <audio id="nativeCtl" controls style="width:100%"></audio>
+      </div>
+    </details>
+
     <footer>
       <span class="pill">Audio: Labbaik (nasheed)</span>
       <div class="notice">This site respects your settings: reduced motion & prefers-color-scheme.</div>
     </footer>
   </div>
 
-  <!-- Background audio (muted initially to allow auto-play attempts on some browsers) -->
-  <!-- Put labbaik.mp3 next to this HTML file. You can also use a CDN link you control. -->
-  <audio id="bgm" src="labbaik.mp3" preload="auto" loop playsinline></audio>
+  <!-- Background audio -->
+  <!-- Keep labbaik.mp3 in the SAME folder as this HTML file -->
+  <audio id="bgm" src="./labbaik.mp3" preload="auto" loop playsinline crossorigin="anonymous"></audio>
 
   <script>
-    // --- Small helper: query string can hold details you want to inject without code changes ---
+    // --- URL params helper ---
     const qs = new URLSearchParams(location.search);
 
-    // Set optional links if provided (e.g., ?rsvp=https://form&map=https://maps...)
+    // Optional links
     const rsvpURL = qs.get('rsvp');
     const mapURL = qs.get('map');
     const shareText = qs.get('shareText') || 'Join us to celebrate Hajj — you are warmly invited!';
     if (rsvpURL) document.getElementById('rsvpBtn').href = rsvpURL;
     if (mapURL) document.getElementById('mapsBtn').href = mapURL;
 
-    // Open native share sheet if available
+    // Share
     const shareBtn = document.getElementById('shareBtn');
     shareBtn.addEventListener('click', async (e)=>{
       e.preventDefault();
@@ -154,13 +161,12 @@
       if (navigator.share){
         try{ await navigator.share(data); }catch(e){}
       } else {
-        // fall back: WhatsApp share
         const wa = 'https://wa.me/?text=' + encodeURIComponent(shareText + '\n' + location.href);
         location.href = wa;
       }
     });
 
-    // Invitation image loading shimmer
+    // Image shimmer
     const img = document.getElementById('invitation');
     img.addEventListener('load', ()=> img.classList.remove('skeleton'));
     img.addEventListener('error', ()=>{
@@ -168,19 +174,34 @@
       img.classList.remove('skeleton');
     });
 
-    // Reveal animation once content is ready
+    // Reveal animation
     window.addEventListener('load', ()=> document.getElementById('card').classList.add('ready'));
 
-    // Audio controls with respectful autoplay handling
+    // Audio controls with respectful autoplay handling + diagnostics
     const audio = document.getElementById('bgm');
+    const nativeCtl = document.getElementById('nativeCtl');
+    nativeCtl.src = audio.currentSrc || audio.src;
+
     const btn = document.getElementById('audioBtn');
     const icon = document.getElementById('audioIcon');
     const text = document.getElementById('audioText');
     const autoplayNote = document.getElementById('autoplayNote');
 
-    // Try autoplay muted first (works in many browsers). Then unmute on user tap.
-    let userInteracted = false;
-    const enable = () => { btn.disabled = false; autoplayNote.hidden = false; };
+    function toast(msg){
+      let t=document.getElementById('toast');
+      if(!t){
+        t=document.createElement('div');
+        t.id='toast';
+        Object.assign(t.style,{
+          position:'fixed',bottom:'16px',left:'50%',transform:'translateX(-50%)',
+          background:'#0f172a',color:'#fff',padding:'10px 14px',borderRadius:'12px',
+          boxShadow:'0 10px 30px rgba(0,0,0,.25)',fontSize:'12px',zIndex:9999,transition:'opacity .3s'
+        });
+        document.body.appendChild(t);
+      }
+      t.textContent=msg; t.style.opacity='1';
+      setTimeout(()=>{t.style.opacity='0'}, 4500);
+    }
 
     function updateUI(){
       const playing = !audio.paused;
@@ -189,37 +210,45 @@
       btn.setAttribute('aria-pressed', playing ? 'true' : 'false');
     }
 
-    // Respect reduced-motion users by not auto-playing at all
+    audio.addEventListener('error', ()=>{
+      toast('Audio not found or blocked. Ensure "labbaik.mp3" is beside this HTML and the site is served over HTTPS.');
+    });
+    audio.addEventListener('stalled', ()=> toast('Network stalled while loading audio.'));
+    audio.addEventListener('canplaythrough', ()=>{/* ready */});
+
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     async function attemptAutoplay(){
-      if (prefersReducedMotion) { enable(); return; }
+      btn.disabled = true;
+      autoplayNote.hidden = true;
+      if (prefersReducedMotion){ btn.disabled=false; autoplayNote.hidden=false; return; }
       try{
-        audio.muted = true; // allow autoplay attempt
-        await audio.play();
-        // Immediately pause; we only did this to warm-up the media session
+        audio.muted = true;
+        await audio.play();   // warm-up
         audio.pause();
         audio.currentTime = 0;
         audio.muted = false;
-        enable();
       }catch(err){
-        // Autoplay blocked — show hint and wait for a user gesture
-        enable();
+        // Autoplay blocked — normal on most browsers
+      }finally{
+        btn.disabled = false;
+        autoplayNote.hidden = false;
+        updateUI();
       }
     }
-
     attemptAutoplay();
 
     btn.addEventListener('click', async ()=>{
-      userInteracted = true;
       try{
         if (audio.paused){ await audio.play(); }
         else { audio.pause(); }
-      }catch(err){ console.error(err); }
+      }catch(err){
+        toast('Could not start audio: ' + (err?.message || 'Interaction required or format unsupported.'));
+      }
       updateUI();
     });
 
-    // Pause audio when tab is hidden; resume only if the user had it playing
+    // Pause when tab hidden; resume only if user had it playing
     let wasPlaying = false;
     document.addEventListener('visibilitychange', ()=>{
       if (document.hidden){ wasPlaying = !audio.paused; audio.pause(); }
@@ -227,13 +256,12 @@
       updateUI();
     });
 
-    // Keyboard accessible (space/enter) on focused button
+    // Keyboard access
     btn.addEventListener('keydown', (e)=>{
       if (e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); btn.click(); }
     });
 
-    // Optional: Quick Add-to-Calendar ICS download (fill in details via query string)
-    // ?eventTitle=Hadiya%20Gathering&eventStart=2025-09-20T17:00:00&eventEnd=2025-09-20T20:00:00&eventLocation=123%20Main%20St
+    // Optional: Add-to-Calendar via query string
     const evtTitle = qs.get('eventTitle');
     const evtStart = qs.get('eventStart');
     const evtEnd = qs.get('eventEnd');
@@ -247,7 +275,18 @@
         e.preventDefault();
         const pad = (n)=> String(n).padStart(2,'0');
         const dt = (s)=>{ const d=new Date(s); return d.getUTCFullYear()+pad(d.getUTCMonth()+1)+pad(d.getUTCDate())+'T'+pad(d.getUTCHours())+pad(d.getUTCMinutes())+pad(d.getUTCSeconds())+'Z'; };
-        const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Hadiya Invite//EN\nBEGIN:VEVENT\nUID:${crypto.randomUUID()}\nDTSTAMP:${dt(new Date().toISOString())}\nDTSTART:${dt(evtStart)}\nDTEND:${dt(evtEnd)}\nSUMMARY:${evtTitle}\nLOCATION:${(evtLoc||'').replace(/,/g,'\\,')}\nEND:VEVENT\nEND:VCALENDAR`;
+        const ics = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Hadiya Invite//EN
+BEGIN:VEVENT
+UID:${crypto.randomUUID()}
+DTSTAMP:${dt(new Date().toISOString())}
+DTSTART:${dt(evtStart)}
+DTEND:${dt(evtEnd)}
+SUMMARY:${evtTitle}
+LOCATION:${(evtLoc||'').replace(/,/g,'\\,')}
+END:VEVENT
+END:VCALENDAR`;
         const blob = new Blob([ics], {type:'text/calendar'});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a'); a.href = url; a.download = 'hadiya-invite.ics'; a.click();
@@ -270,13 +309,10 @@
   <!--
   ──────────────────────────────────────────────────────────────────────────────
    HOW TO USE
-   1) Put this single HTML file, your invitation image (invite.jpg), and your
-      audio file (labbaik.mp3) in the same folder / GitHub repo (e.g. GitHub Pages).
-   2) Update the <meta> tags if you want richer link previews.
-   3) Optional: pass details in the URL for RSVP/Map/Calendar. Examples:
-      https://your.site/index.html?rsvp=https://forms.gle/abc&map=https://maps.google.com/?q=123%20Main%20St&eventTitle=Hadiya%20Gathering&eventStart=2025-09-20T17:00:00&eventEnd=2025-09-20T20:00:00&eventLocation=123%20Main%20St
-   4) If autoplay with sound is blocked (most browsers), visitors tap the Play button.
-   5) Accessibility: keyboard-friendly, reduced‑motion respected, audio always pausable.
+   1) Put this HTML, invite.jpg, and labbaik.mp3 in the SAME folder / GitHub Pages root.
+   2) Serve over HTTPS. Don’t hotlink audio from Google Drive (CORS/content-type issues).
+   3) Tap Play on first load (autoplay with sound is blocked by most browsers).
+   4) iPhone: make sure the hardware silent switch is OFF.
   ──────────────────────────────────────────────────────────────────────────────
   -->
 </body>
