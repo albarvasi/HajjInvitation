@@ -22,17 +22,17 @@
       background:#0a3d62; color:#fff; border:0; border-radius:999px;
       padding:12px 18px; font-weight:600; cursor:pointer;
     }
-    #autoplayNote{
+    /* #autoplayNote{
       position:fixed; bottom:60px; right:20px;
       color:#fff; font-size:12px;
-    }
+    } */
   </style>
 </head>
 <body>
   <img src="invite.jpg" alt="Invitation card" />
 
   <button id="audioBtn" aria-pressed="false"><span id="audioIcon">▶️</span> <span id="audioText">Play Labbaik</span></button>
-  <span id="autoplayNote" hidden>Tip: Tap play — browsers block auto‑play with sound.</span>
+  <!-- <span id="autoplayNote" hidden>Tip: Tap play — browsers block auto‑play with sound.</span> -->
 
   <audio id="bgm" src="labbaik.mp3" preload="auto" loop playsinline crossorigin="anonymous"></audio>
 
@@ -41,7 +41,7 @@
     const btn = document.getElementById('audioBtn');
     const icon = document.getElementById('audioIcon');
     const text = document.getElementById('audioText');
-    const note = document.getElementById('autoplayNote');
+    // const note = document.getElementById('autoplayNote');
 
     function updateUI(){
       const playing = !audio.paused;
